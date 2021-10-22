@@ -7,7 +7,13 @@ Function There(Obj As Object) As Boolean
 
 End Function
 
-Sub CreateDrawing(Template As String, ModelName As String)
+Sub AskOkCancel(Prompt As String, ByRef UserChoice As VbMsgBoxResult)
+
+  UserChoice = MsgBox(Prompt, vbOKCancel)
+
+End Sub
+
+Sub CreateDrawing(Template As String, ModelName As String, DrawingName As String)
 
   Dim NewDoc As ModelDoc2
   Dim Drawing As DrawingDoc
@@ -20,12 +26,14 @@ Sub CreateDrawing(Template As String, ModelName As String)
   Set ASheet = Drawing.GetCurrentSheet
   ASheet.GetSize Width, Height
   Drawing.CreateDrawViewFromModelView3 ModelName, "*Front", Width / 2, Height / 2, 0
+  NewDoc.SetTitle2 gFSO.GetBaseName(DrawingName)
+  swApp.SetCurrentWorkingDirectory gFSO.GetParentFolderName(DrawingName)
 
 End Sub
 
 Function GetDrawingTemplates() As Collection
 
-  Dim I As Variant
+  Dim i As Variant
   Dim J As Variant
   Dim AFolder As Folder
   Dim AFile As File
@@ -34,8 +42,8 @@ Function GetDrawingTemplates() As Collection
   Dim DefaultTemplate As String
   
   Set Templates = New Collection
-  For Each I In GetTemplateLocations
-    Set AFolder = gFSO.GetFolder(I)
+  For Each i In GetTemplateLocations
+    Set AFolder = gFSO.GetFolder(i)
     For Each J In AFolder.Files
       Set AFile = J
       Extension = gFSO.GetExtensionName(AFile.Name)
@@ -71,15 +79,15 @@ End Function
 
 Sub SearchOpenedDrawing(FullDrawingName As String, ByRef OpenedWindow As ModelWindow)
   
-  Dim I As Variant
+  Dim i As Variant
   Dim AModelWindow As ModelWindow
   Dim DocName As String
   Dim DrawingName As String
   
   Set OpenedWindow = Nothing
   DrawingName = gFSO.GetFileName(FullDrawingName)
-  For Each I In swApp.Frame.ModelWindows
-    Set AModelWindow = I
+  For Each i In swApp.Frame.ModelWindows
+    Set AModelWindow = i
     DocName = gFSO.GetFileName(AModelWindow.ModelDoc.GetPathName)
     If StrComp(DrawingName, DocName, vbTextCompare) = 0 Then
       Set OpenedWindow = AModelWindow

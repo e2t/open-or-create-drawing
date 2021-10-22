@@ -4,13 +4,14 @@ Option Explicit
 Public swApp As Object
 Public gFSO As FileSystemObject
 Dim gDocName As String
+Dim gDrawingName As String
 
 Sub Main()
 
   Dim CurrentDoc As ModelDoc2
   Dim OpenedWindow As ModelWindow
   Dim IsNewDoc As Boolean
-  Dim DrawingName As String
+  Dim UserChoice As VbMsgBoxResult
 
   Set swApp = Application.SldWorks
   Set gFSO = New FileSystemObject
@@ -26,12 +27,17 @@ Sub Main()
   If IsNewDoc Then
     ChooseTemplateAndCreateDrawing
   Else
-    DrawingName = CreateDrawingName(gDocName)
-    SearchOpenedDrawing DrawingName, OpenedWindow
+    gDrawingName = CreateDrawingName(gDocName)
+    SearchOpenedDrawing gDrawingName, OpenedWindow
     If There(OpenedWindow) Then
       OpenedWindow.Activate
-    ElseIf gFSO.FileExists(DrawingName) Then
-      OpenDrawing DrawingName
+    ElseIf gFSO.FileExists(gDrawingName) Then
+      AskOkCancel "Открыть существующий чертеж?", UserChoice
+      If UserChoice = vbOK Then
+        OpenDrawing gDrawingName
+      Else
+        ChooseTemplateAndCreateDrawing
+      End If
     Else
       ChooseTemplateAndCreateDrawing
     End If
@@ -45,7 +51,7 @@ Function Run() 'hide
   
   Template = ChooseTemplateDialog.ListBoxNames.Text
   ChooseTemplateDialog.Hide
-  CreateDrawing Template, gDocName
+  CreateDrawing Template, gDocName, gDrawingName
   ExitApp
 
 End Function
@@ -59,10 +65,10 @@ End Function
 
 Function SearchFormInit() 'hide
 
-  Dim I As Variant
+  Dim i As Variant
   
-  For Each I In GetDrawingTemplates
-    ChooseTemplateDialog.ListBoxNames.AddItem I
+  For Each i In GetDrawingTemplates
+    ChooseTemplateDialog.ListBoxNames.AddItem i
   Next
   If ChooseTemplateDialog.ListBoxNames.ListCount > 0 Then
     ChooseTemplateDialog.ListBoxNames.ListIndex = 0
