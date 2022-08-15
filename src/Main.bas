@@ -1,17 +1,19 @@
 Attribute VB_Name = "Main"
 Option Explicit
 
+Const kChooseNewDrawing = "[Создать новый...]"
 Public swApp As Object
 Public gFSO As FileSystemObject
 Dim gDocName As String
-Dim gDrawingName As String
+Dim gExistDrawings As Dictionary
 
 Sub Main()
 
   Dim CurrentDoc As ModelDoc2
-  Dim OpenedWindow As ModelWindow
   Dim IsNewDoc As Boolean
-  Dim UserChoice As VbMsgBoxResult
+  Dim Name As String
+  Dim Designation As String
+  Dim FolderPath As String
 
   Set swApp = Application.SldWorks
   Set gFSO = New FileSystemObject
@@ -27,31 +29,48 @@ Sub Main()
   If IsNewDoc Then
     ChooseTemplateAndCreateDrawing
   Else
-    gDrawingName = CreateDrawingName(gDocName)
-    SearchOpenedDrawing gDrawingName, OpenedWindow
-    If There(OpenedWindow) Then
-      OpenedWindow.Activate
-    ElseIf gFSO.FileExists(gDrawingName) Then
-      AskOkCancel "Открыть существующий чертеж?", UserChoice
-      If UserChoice = vbOK Then
-        OpenDrawing gDrawingName
-      Else
-        ChooseTemplateAndCreateDrawing
-      End If
-    Else
+    SplitNameAndDesignation gFSO.GetBaseName(gDocName), Designation, Name
+    FolderPath = gFSO.GetParentFolderName(gDocName)
+    Set gExistDrawings = SearchDrawings(Designation, FolderPath)
+    If gExistDrawings.Count = 0 Then
       ChooseTemplateAndCreateDrawing
+    Else
+      ChooseDrawingOrCreateNew
     End If
   End If
- 
+  
 End Sub
 
-Function Run() 'hide
+Function RunChooseExistDrawing() 'hide
+
+  Dim OpenedWindow As ModelWindow
+  Dim DrawingName As String
+  
+  With SelectExistDrawingDialog
+    .Hide
+    If .DrawingListBox.Text = kChooseNewDrawing Then
+      ChooseTemplateAndCreateDrawing
+    Else
+      DrawingName = gExistDrawings(.DrawingListBox.Text)
+      SearchOpenedDrawing DrawingName, OpenedWindow
+      If There(OpenedWindow) Then
+        OpenedWindow.Activate
+      Else
+        OpenDrawing DrawingName
+      End If
+    End If
+  End With
+  ExitApp
+
+End Function
+
+Function RunCreateNewDrawing() 'hide
 
   Dim Template As String
   
-  Template = ChooseTemplateDialog.ListBoxNames.Text
   ChooseTemplateDialog.Hide
-  CreateDrawing Template, gDocName, gDrawingName
+  Template = ChooseTemplateDialog.ListBoxNames.Text
+  CreateDrawing Template, gDocName, CreateDrawingName(gDocName)
   ExitApp
 
 End Function
@@ -59,20 +78,23 @@ End Function
 Function ExitApp() 'hide
 
   Unload ChooseTemplateDialog
+  Unload SelectExistDrawingDialog
   End
 
 End Function
 
 Function SearchFormInit() 'hide
 
-  Dim i As Variant
+  Dim I As Variant
   
-  For Each i In GetDrawingTemplates
-    ChooseTemplateDialog.ListBoxNames.AddItem i
-  Next
-  If ChooseTemplateDialog.ListBoxNames.ListCount > 0 Then
-    ChooseTemplateDialog.ListBoxNames.ListIndex = 0
-  End If
+  With ChooseTemplateDialog.ListBoxNames
+    For Each I In GetDrawingTemplates
+      .AddItem I
+    Next
+    If .ListCount > 0 Then
+      .ListIndex = 0
+    End If
+  End With
 
 End Function
 
@@ -80,4 +102,28 @@ Function ChooseTemplateAndCreateDrawing() 'hide
 
   ChooseTemplateDialog.Show
   
+End Function
+
+Function ChooseDrawingFormInit() 'hide
+
+  Dim I As Variant
+  
+  With SelectExistDrawingDialog.DrawingListBox
+    .AddItem kChooseNewDrawing
+    For Each I In gExistDrawings.Keys
+      .AddItem I
+    Next
+    If .ListCount > 1 Then
+      .ListIndex = 1
+    Else
+      .ListIndex = 0
+    End If
+  End With
+
+End Function
+
+Function ChooseDrawingOrCreateNew() 'hide
+
+  SelectExistDrawingDialog.Show
+
 End Function

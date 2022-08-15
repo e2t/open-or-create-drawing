@@ -33,18 +33,18 @@ End Sub
 
 Function GetDrawingTemplates() As Collection
 
-  Dim i As Variant
+  Dim I As Variant
   Dim J As Variant
-  Dim AFolder As Folder
+  Dim aFolder As Folder
   Dim AFile As File
   Dim Extension As String
   Dim Templates As Collection
   Dim DefaultTemplate As String
   
   Set Templates = New Collection
-  For Each i In GetTemplateLocations
-    Set AFolder = gFSO.GetFolder(i)
-    For Each J In AFolder.Files
+  For Each I In GetTemplateLocations
+    Set aFolder = gFSO.GetFolder(I)
+    For Each J In aFolder.Files
       Set AFile = J
       Extension = gFSO.GetExtensionName(AFile.Name)
       If StrComp(Extension, "DRWDOT", vbTextCompare) = 0 Then
@@ -79,15 +79,15 @@ End Function
 
 Sub SearchOpenedDrawing(FullDrawingName As String, ByRef OpenedWindow As ModelWindow)
   
-  Dim i As Variant
+  Dim I As Variant
   Dim AModelWindow As ModelWindow
   Dim DocName As String
   Dim DrawingName As String
   
   Set OpenedWindow = Nothing
   DrawingName = gFSO.GetFileName(FullDrawingName)
-  For Each i In swApp.Frame.ModelWindows
-    Set AModelWindow = i
+  For Each I In swApp.Frame.ModelWindows
+    Set AModelWindow = I
     DocName = gFSO.GetFileName(AModelWindow.ModelDoc.GetPathName)
     If StrComp(DrawingName, DocName, vbTextCompare) = 0 Then
       Set OpenedWindow = AModelWindow
@@ -128,3 +128,101 @@ Sub GetDocNameAndSaveIfNecessary( _
   End If
 
 End Sub
+
+' Без точек "." в наименовании
+Sub SplitNameAndDesignation(Src As String, ByRef Designation As String, _
+                            ByRef Name As String)
+
+  Const Flat As String = "SM-FLAT-PATTERN"
+  Const gCodeRegexPattern = "СБ|МЧ|УЧ|ВО|РСБ|AD|ID|\.AD|\.ID"
+  Dim RegexAsm As RegExp
+  Dim RegexPrt As RegExp
+  Dim Matches As Object
+  Dim Z As Variant
+  
+  Designation = Src
+  Name = Src
+  'Code = ""
+  
+  Set RegexAsm = New RegExp
+  RegexAsm.Pattern = "(.*\..*[0-9] *)(" + gCodeRegexPattern + ") ([^.]+)"
+  RegexAsm.IgnoreCase = True
+  RegexAsm.Global = True
+  
+  Set RegexPrt = New RegExp
+  RegexPrt.Pattern = "(.*\.[^ ]+) ([^.]+)"
+  RegexPrt.IgnoreCase = True
+  RegexPrt.Global = True
+  
+  If RegexAsm.Test(Src) Then
+    Set Matches = RegexAsm.Execute(Src)
+    Designation = Trim(Matches(0).SubMatches(0))
+    'Code = Matches(0).SubMatches(1)
+    Name = Trim(Matches(0).SubMatches(2))
+  ElseIf RegexPrt.Test(Src) Then
+    Set Matches = RegexPrt.Execute(Src)
+    Designation = Trim(Matches(0).SubMatches(0))
+    Name = Trim(Matches(0).SubMatches(1))
+  End If
+   
+End Sub
+
+Function IsBaseConf(Conf As String) As Boolean
+
+  Select Case Conf
+    Case "00", "По умолчанию", "Default"
+      IsBaseConf = True
+    Case Else
+      IsBaseConf = False
+  End Select
+
+End Function
+
+Function SearchDrawings(Designation As String, FolderPath As String) As Dictionary
+
+  Dim aFolder As Folder
+  Dim I As Variant
+  Dim F As File
+  Dim RegexDrawing As RegExp
+  Dim Result As Dictionary
+  
+  Set Result = New Dictionary
+  
+  Set RegexDrawing = New RegExp
+  RegexDrawing.Pattern = "( *" + RegEscape(Designation) + " +)(.*)\.SLDDRW"
+  RegexDrawing.IgnoreCase = True
+  RegexDrawing.Global = True
+
+  Set aFolder = gFSO.GetFolder(FolderPath)
+  For Each I In aFolder.Files
+    Set F = I
+    If RegexDrawing.Test(F.ShortName) Then
+      Result.Add gFSO.GetBaseName(F.ShortName), F.Path
+    End If
+  Next
+  Set SearchDrawings = Result
+
+End Function
+
+'See: https://docs.microsoft.com/en-us/dotnet/api/System.Text.RegularExpressions.Regex.Escape
+Function RegEscape(ByVal Line As String) As String
+
+  Line = Replace(Line, "\", "\\")  'MUST be first!
+  Line = Replace(Line, ".", "\.")
+  Line = Replace(Line, "[", "\[")
+  'line = Replace(line, "]", "\]")
+  Line = Replace(Line, "|", "\|")
+  Line = Replace(Line, "^", "\^")
+  Line = Replace(Line, "$", "\$")
+  Line = Replace(Line, "?", "\?")
+  Line = Replace(Line, "+", "\+")
+  Line = Replace(Line, "*", "\*")
+  Line = Replace(Line, "{", "\{")
+  'line = Replace(line, "}", "\}")
+  Line = Replace(Line, "(", "\(")
+  Line = Replace(Line, ")", "\)")
+  Line = Replace(Line, "#", "\#")
+  'and white space??
+  RegEscape = Line
+    
+End Function

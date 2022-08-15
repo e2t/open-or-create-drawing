@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ChooseTemplateDialog 
-   Caption         =   "Выберите шаблон"
+   Caption         =   "Choose a template"
    ClientHeight    =   5865
    ClientLeft      =   45
    ClientTop       =   390
@@ -23,14 +23,14 @@ End Sub
 
 Private Sub BtnRun_Click()
 
-  Run
+  RunCreateNewDrawing
 
 End Sub
 
 Private Sub ListBoxNames_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
 
   If Me.ListBoxNames.ListCount > 0 Then
-    Run
+    RunCreateNewDrawing
   End If
 
 End Sub
