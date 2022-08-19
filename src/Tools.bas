@@ -189,7 +189,7 @@ Function SearchDrawings(Designation As String, FolderPath As String) As Dictiona
   Set Result = New Dictionary
   
   Set RegexDrawing = New RegExp
-  RegexDrawing.Pattern = "( *" + RegEscape(Designation) + " +)(.*)\.SLDDRW"
+  RegexDrawing.Pattern = " *" + RegEscape(Designation) + "[ .].*\.SLDDRW"
   RegexDrawing.IgnoreCase = True
   RegexDrawing.Global = True
 
