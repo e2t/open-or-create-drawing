@@ -1,4 +1,4 @@
-﻿# Open-Or-Create-Drawing
+﻿# OpenOrCreateDrawing
 Макрос, заменяющий штатную функцию SolidWorks "Создать чертеж из детали/сборки".
 
 ### Зависимости
