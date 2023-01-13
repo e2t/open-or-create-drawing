@@ -16,25 +16,18 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub CancelBtn_Click()
-
-  ExitApp
-
+    ExitApp
 End Sub
 
 Private Sub DrawingListBox_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-
-  RunChooseExistDrawing
-
+    RunChooseExistDrawing
 End Sub
 
 Private Sub OkBtn_Click()
-
-  RunChooseExistDrawing
-
+    RunChooseExistDrawing
 End Sub
 
 Private Sub UserForm_Initialize()
-
-  ChooseDrawingFormInit
-
+    ChooseDrawingFormInit
+    Me.Caption = TitleWindow(Me.Caption)
 End Sub

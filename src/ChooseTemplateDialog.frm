@@ -16,27 +16,20 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub BtnCancel_Click()
-
-  ExitApp
-
+    ExitApp
 End Sub
 
 Private Sub BtnRun_Click()
-
-  RunCreateNewDrawing
-
+    RunCreateNewDrawing
 End Sub
 
 Private Sub ListBoxNames_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-
-  If Me.ListBoxNames.ListCount > 0 Then
-    RunCreateNewDrawing
-  End If
-
+    If Me.ListBoxNames.ListCount > 0 Then
+        RunCreateNewDrawing
+    End If
 End Sub
 
 Private Sub UserForm_Initialize()
-
-  SearchFormInit
-
+    SearchFormInit
+    Me.Caption = TitleWindow(Me.Caption)
 End Sub
