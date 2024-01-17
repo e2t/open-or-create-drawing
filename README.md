@@ -1,4 +1,6 @@
-﻿# OpenOrCreateDrawing
+This project has been moved to https://codeberg.org/e2t/open-or-create-drawing
+ 
+ # OpenOrCreateDrawing
 Макрос, що замінює штатну функцію SolidWorks "Make Drawing from Part/Assembly".
 
 ![image](https://user-images.githubusercontent.com/28775275/212389696-50d992a0-8a19-409d-b9a7-4dc41cc23f62.png)
